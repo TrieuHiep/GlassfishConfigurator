@@ -1,0 +1,6 @@
+#MySQL
+serverName=localhost
+portNumber=3306
+databaseName=bookstore
+user=root
+password=nthangzuzu
