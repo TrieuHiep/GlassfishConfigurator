@@ -204,13 +204,13 @@ public class MainController {
             String s = null;
 
             while ((s = stdInput.readLine()) != null) {
-                System.out.println(s);
+                System.out.print(s);
                 view.appendRuntimeLog(s, consoleAreaConstant);
             }
 
             System.out.println("Here is the standard error of the command (if any):\n");
             while ((s = stdError.readLine()) != null) {
-                System.out.println(s);
+                System.out.print(s);
                 view.appendRuntimeLog(s, consoleAreaConstant);
             }
         } catch (IOException ex) {

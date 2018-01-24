@@ -8,4 +8,4 @@ password=$6
 glassfish_home=$7
 glassfish_home=${glassfish_home//\"/}
 cd $glassfish_home/gla*/bin
-./asadmin.bat create-jdbc-connection-pool --property serverName=$serverName:portNumber=$portNumber:databaseName=$databaseName:User=$user:Password=$password:URL=jdbc\:mysql\://$serverName\:$portNumber/$databaseName:driverClass=com.mysql.jdbc.Driver --datasourceclassname com.mysql.jdbc.jdbc2.optional.MysqlDataSource $connectionPool
+./asadmin create-jdbc-connection-pool --property serverName=$serverName:portNumber=$portNumber:databaseName=$databaseName:User=$user:Password=$password:URL=jdbc\\:mysql\\://$serverName\\:$portNumber/$databaseName:driverClass=com.mysql.jdbc.Driver --datasourceclassname com.mysql.jdbc.jdbc2.optional.MysqlDataSource $connectionPool
