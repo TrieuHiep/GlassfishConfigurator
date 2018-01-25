@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="GlassfishConfigurator:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/GlassfishConfigurator_jar</output-path>
+    <root id="archive" name="GlassfishConfigurator.jar">
+      <element id="module-output" name="GlassfishConfigurator" />
+    </root>
+  </artifact>
+</component>
