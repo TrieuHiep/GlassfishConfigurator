@@ -29,14 +29,14 @@ public abstract class AbstractTask extends ProductAbstract {
     @Override
     public void executeWindowsPlatform() {
         this.baseCommand = "cmd /C ";
-        this.folderScript = "windows\\";
+        this.folderScript = "script/windows\\";
         this.fileExtension = ".bat";
     }
 
     @Override
     public void executeLinuxPlatform() {
         this.baseCommand = "bash ";
-        this.folderScript = "linux/";
+        this.folderScript = "script/linux/";
         this.fileExtension = ".sh";
     }
 }
