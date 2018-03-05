@@ -29,7 +29,7 @@ public abstract class AbstractTask extends ProductAbstract {
     @Override
     public void executeWindowsPlatform() {
         this.baseCommand = "cmd /C ";
-        this.folderScript = "script/windows\\";
+        this.folderScript = "script\\windows\\";
         this.fileExtension = ".bat";
     }
 
