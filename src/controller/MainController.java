@@ -7,16 +7,18 @@ package controller;
 
 import constant.ConsoleAreaConstant;
 import constant.ProductConstant;
+
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import model.Domain;
 import task.ConnCreator;
 import task.DomainGetter;
@@ -26,7 +28,6 @@ import utils.DomainParser;
 import view.GlassfishConfigurator;
 
 /**
- *
  * @author Tatsuya
  */
 public class MainController {
@@ -35,11 +36,44 @@ public class MainController {
     private String glassfishHomeDir;
     private ProductConstant productConstant;
 
+    private Map<String, String> mapLogs;
+
     public MainController(GlassfishConfigurator view, ProductConstant productConstant) {
         this.view = view;
         this.productConstant = productConstant;
+        this.mapLogs = new HashMap<>();
         initListener();
+        initGlassfishHome();
         this.view.showMessage(System.getProperty("os.name") + " OS detected!");
+    }
+
+    private void initGlassfishHome() {
+        Properties configReader = new Properties();
+        try {
+            configReader.load(new FileInputStream("logs/log.txt"));
+        } catch (IOException e) {
+            System.out.println("creating logs file...");
+            try {
+                String path = "logs" + File.separator + "log.txt";
+                File f = new File(path);
+                f.getParentFile().mkdirs();
+                f.createNewFile();
+                System.out.println("done!");
+            } catch (IOException ex) {
+                Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        String t = configReader.getProperty("GlassfishHome");
+        String mysql = configReader.getProperty("MySQLDriver");
+        if (t != null) {
+            this.mapLogs.put("GlassfishHome", t);
+            glassfishHomeDir = t;
+            this.view.setGlassfishHome(t);
+        }
+        if (mysql != null) {
+            this.mapLogs.put("MySQLDriver", mysql);
+            this.view.setMySQLLib(mysql);
+        }
     }
 
     private void initListener() {
@@ -49,19 +83,18 @@ public class MainController {
         this.view.setStopDomainListener(new DomainStopper());
         this.view.setConnectionPoolListener(new ConnectionPoolCreator());
         this.view.setJNDINameListener(new JNDICreator());
+        this.view.setGetDomainStatusListener(new DomainStatusGetter());
     }
 
-    class GlassfishLoader implements ActionListener {
+    class DomainStatusGetter implements ActionListener {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            glassfishHomeDir = MainController.this.view.getGlassfishDirectory();
+            glassfishHomeDir = MainController.this.view.getGlassfishHome();
             if (glassfishHomeDir == null) {
                 view.showMessage("you must choose the home folder of Glassfish Server!");
                 return;
             }
-            MainController.this.view.setGlassfishHome(glassfishHomeDir);
-            System.out.println(glassfishHomeDir);
             try {
                 Process proc = new DomainGetter(glassfishHomeDir, productConstant).getDomainStatus();
                 BufferedReader stdInput = new BufferedReader(new InputStreamReader(proc.getInputStream()));
@@ -86,14 +119,32 @@ public class MainController {
                 Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
+
+    }
+
+    class GlassfishLoader implements ActionListener {
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            glassfishHomeDir = MainController.this.view.getGlassfishDirectory();
+            if (glassfishHomeDir == null) {
+                view.showMessage("you must choose the home folder of Glassfish Server!");
+                return;
+            }
+            MainController.this.mapLogs.put("GlassfishHome", glassfishHomeDir);
+            MainController.this.saveToLogs();
+            MainController.this.view.setGlassfishHome(glassfishHomeDir);
+            System.out.println(glassfishHomeDir);
+
+        }
     }
 
     class MySQLPathGetter implements ActionListener {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            if (glassfishHomeDir == null) {
-                view.showMessage("you must choose glassfish home folder first!");
+            if (glassfishHomeDir == null || view.getSelectedDomain() == null) {
+                view.showMessage("you must choose glassfish home folder and domain first!");
                 return;
             }
             File srcFile = view.getMySQLConnectorJarFile();
@@ -104,6 +155,9 @@ public class MainController {
             view.showFilePath(srcFile.getAbsolutePath());
             String libName = srcFile.getName();
 
+            String libNameAbs = srcFile.getAbsolutePath();
+            MainController.this.mapLogs.put("MySQLDriver", libNameAbs);
+            MainController.this.saveToLogs();
             String desFileURL = glassfishHomeDir + "/glassfish/domains/"
                     + view.getSelectedDomain().getDomainName() + "/lib/" + libName;
             File destFile = new File(desFileURL);
@@ -218,4 +272,21 @@ public class MainController {
         }
     }
 
+    private void saveToLogs() {
+        PrintWriter writer = null;
+        try {
+            writer = new PrintWriter(new File("logs/log.txt"));
+            for (String key : this.mapLogs.keySet()) {
+                String value = this.mapLogs.get(key);
+                if (value.contains("\\")) {
+                    value = value.replace('\\', '/');
+                }
+                writer.println(key + "=" + value);
+            }
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            writer.close();
+        }
+    }
 }
